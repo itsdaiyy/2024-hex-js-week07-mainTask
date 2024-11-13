@@ -1,0 +1,14 @@
+// icons
+@import "bootstrap-icons/font/bootstrap-icons.css";
+
+// bootstrap
+@import "bootstrap/scss/functions";
+@import "./vendors-extensions/variables"; // 覆寫的自定義 bootstrap 變數
+
+@import "bootstrap/scss/bootstrap";
+
+// 自定義基本樣式
+@import "./base/base";
+
+// pages
+@import "./pages/index";
