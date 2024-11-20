@@ -25,10 +25,10 @@ const searchResultText = document.querySelector("#searchResult-text");
 
 function init() {
   render(data);
-  searchResultText.textContent = `本次搜尋共 ${data.length} 筆資料`;
 }
 
 function render(renderData) {
+  searchResultText.textContent = `本次搜尋共 ${renderData.length} 筆資料`;
   if (renderData.length > 0) {
     cantFindArea.style.display = "none";
   } else {
@@ -102,7 +102,6 @@ function filterRenderData(renderTarget) {
     return;
   }
   const renderData = data.filter((ticket) => ticket.area === renderTarget);
-  searchResultText.textContent = `本次搜尋共 ${renderData.length} 筆資料`;
   render(renderData);
 }
 
@@ -164,7 +163,7 @@ addTicketBtn.addEventListener("click", function (e) {
 function addData(obj) {
   data.push(obj);
   clearRender();
-  init();
+  render(data);
 }
 
 function resetForm() {
