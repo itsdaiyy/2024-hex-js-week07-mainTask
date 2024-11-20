@@ -1,4 +1,3 @@
-// Import our custom CSS
 import "./assets/scss/all.scss";
 import "bootstrap/dist/js/bootstrap.min.js";
 import axios from "axios";
@@ -8,35 +7,63 @@ const API_URL =
 
 let data = [];
 
-axios
-  .get(API_URL)
-  .then((res) => {
-    data = res.data.data;
-
-    init();
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
-
-// # 初始化邏輯
+// # 初始化功能元素
 const ticketsRow = document.querySelector(".tickets-row");
 const searchResultText = document.querySelector("#searchResult-text");
+// # 篩選功能元素
+const regionSearchSelect = document.querySelector("#regionSearch");
+const cantFindArea = document.querySelector(".cantFind-area");
+// # 新增套票元素
+const ticketName = document.querySelector("#inputTicketName");
+const ticketImageURL = document.querySelector("#inputImageURL");
+const ticketArea = document.querySelector("#selectArea");
+const ticketPrice = document.querySelector("#inputTicketPrice");
+const ticketCounts = document.querySelector("#inputTicketCounts");
+const ticketLevel = document.querySelector("#inputTicketLevel");
+const ticketDescriptions = document.querySelector(
+  "#textareaTicketDescriptions"
+);
+const addTicketBtn = document.querySelector("#addTicketBtn");
+const addTicketForm = document.querySelector("#addTicketForm");
 
-function init() {
-  render(data);
+// 取得資料
+async function fetchData() {
+  try {
+    const response = await axios.get(API_URL);
+    return response.data.data;
+  } catch (error) {
+    throw error.message;
+  }
 }
 
+// 初始化
+async function init() {
+  try {
+    data = await fetchData();
+    render(data);
+  } catch (error) {
+    console.error("Failed to fetch data:  ", error);
+  }
+}
+
+// 渲染邏輯
 function render(renderData) {
+  // 顯示搜尋資料數
   searchResultText.textContent = `本次搜尋共 ${renderData.length} 筆資料`;
+
+  // 判斷是否顯示查無資料圖示
   if (renderData.length > 0) {
     cantFindArea.style.display = "none";
   } else {
     cantFindArea.style.display = "block";
+    clearRender();
+    return;
   }
-  renderData.forEach((ticket) => {
-    const { name, imgUrl, area, description, group, price, rate } = ticket;
-    ticketsRow.innerHTML += `<li class="col-lg-4 col-md-6">
+
+  // 資料跑迴圈印出 HTML
+  const str = renderData.reduce((acc, cur) => {
+    const { name, imgUrl, area, description, group, price, rate } = cur;
+    return (acc += `<li class="col-lg-4 col-md-6">
               <div class="card ticket-card shadow h-100 border-neutral-400">
                 <div class="position-relative">
                   <img
@@ -78,50 +105,30 @@ function render(renderData) {
                   </p>
                 </div>
               </div>
-            </li>`;
-  });
+            </li>`);
+  }, "");
+
+  ticketsRow.innerHTML = str;
 }
 
-// # 篩選邏輯
-const regionSearchSelect = document.querySelector("#regionSearch");
-const cantFindArea = document.querySelector(".cantFind-area");
-
-// 監聽 selector
-regionSearchSelect.addEventListener("change", function (e) {
-  clearRender();
-  filterRenderData(e.target.value);
-});
-
+// 清空套票欄位
 function clearRender() {
   ticketsRow.innerHTML = "";
 }
 
+// 套票篩選邏輯
 function filterRenderData(renderTarget) {
   if (renderTarget === "") {
-    init();
+    render(data);
     return;
   }
   const renderData = data.filter((ticket) => ticket.area === renderTarget);
   render(renderData);
 }
 
-// # 新增邏輯
-const ticketName = document.querySelector("#inputTicketName");
-const ticketImageURL = document.querySelector("#inputImageURL");
-const ticketArea = document.querySelector("#selectArea");
-const ticketPrice = document.querySelector("#inputTicketPrice");
-const ticketCounts = document.querySelector("#inputTicketCounts");
-const ticketLevel = document.querySelector("#inputTicketLevel");
-const ticketDescriptions = document.querySelector(
-  "#textareaTicketDescriptions"
-);
-const addTicketBtn = document.querySelector("#addTicketBtn");
-const addTicketForm = document.querySelector("#addTicketForm");
-
-addTicketBtn.addEventListener("click", function (e) {
-  e.preventDefault();
-
-  let obj = {
+// 新增套票邏輯
+function getFormData() {
+  return {
     id: data.length + 1,
     name: ticketName.value.trim(),
     imgUrl: ticketImageURL.value.trim(),
@@ -131,34 +138,19 @@ addTicketBtn.addEventListener("click", function (e) {
     rate: Number(ticketLevel.value.trim()),
     description: ticketDescriptions.value.trim(),
   };
+}
 
-  // 錯誤驗證
-  let errorMsg = "";
-
-  if (!obj.name) {
-    errorMsg = "必須填入套票名稱";
-  } else if (!obj.imgUrl) {
-    errorMsg = "必須填入圖片網址";
-  } else if (!obj.area) {
-    errorMsg = "必須填入套票地區";
-  } else if (!obj.price) {
-    errorMsg = "必須填入套票價錢";
-  } else if (obj.group < 1) {
-    errorMsg = "套票組數必須至少為 1";
-  } else if (obj.rate < 1 || obj.rate > 10) {
-    errorMsg = "套票星級必須在 1 ~ 10 之間";
-  } else if (obj.description.length > 100 || !obj.description) {
-    errorMsg = "必須填入套票描述，且不能超過 100 字";
-  }
-
-  if (errorMsg) {
-    alert(errorMsg);
-    return;
-  }
-
-  addData(obj);
-  resetForm();
-});
+function validateFormData(ticket) {
+  if (!ticket.name) return "必須填入套票名稱";
+  if (!ticket.imgUrl) return "必須填入圖片網址";
+  if (!ticket.area) return "必須填入套票地區";
+  if (!ticket.price) return "必須填入套票價錢";
+  if (ticket.group < 1) return "套票組數必須至少為 1";
+  if (ticket.rate < 1 || ticket.rate > 10) return "套票星級必須在 1 ~ 10 之間";
+  if (ticket.description.length > 100 || !ticket.description)
+    return "必須填入套票描述，且不能超過 100 字";
+  return null;
+}
 
 function addData(obj) {
   data.push(obj);
@@ -170,3 +162,28 @@ function resetForm() {
   addTicketForm.reset();
   regionSearchSelect.value = "";
 }
+
+// 監聽 filter
+regionSearchSelect.addEventListener("change", function (e) {
+  clearRender();
+  filterRenderData(e.target.value);
+});
+
+// 監聽新增套票表格
+addTicketBtn.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  const newTicket = getFormData();
+  // 錯誤驗證
+  const errorMsg = validateFormData(newTicket);
+
+  if (errorMsg) {
+    alert(errorMsg);
+    return;
+  }
+
+  addData(newTicket);
+  resetForm();
+});
+
+init();
