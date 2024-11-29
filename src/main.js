@@ -47,8 +47,6 @@ async function init() {
   }
 }
 
-init();
-
 // 渲染邏輯
 function render(renderData) {
   // 顯示搜尋資料數
@@ -239,3 +237,5 @@ function getSortedData(arrayData) {
   const order = ["台北", "台中", "高雄"];
   return arrayData.sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
 }
+
+init();
