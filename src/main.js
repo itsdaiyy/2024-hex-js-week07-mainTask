@@ -41,10 +41,13 @@ async function init() {
   try {
     data = await fetchData();
     render(data);
+    renderPieChart(data);
   } catch (error) {
     console.error("Failed to fetch data:  ", error);
   }
 }
+
+init();
 
 // 渲染邏輯
 function render(renderData) {
@@ -156,6 +159,7 @@ function addData(obj) {
   data.push(obj);
   clearRender();
   render(data);
+  renderPieChart(data);
 }
 
 function resetForm() {
@@ -186,4 +190,52 @@ addTicketBtn.addEventListener("click", function (e) {
   resetForm();
 });
 
-init();
+// 圓餅圖邏輯
+function renderPieChart(renderData) {
+  const data = formateChartData(renderData);
+  console.log("renderChart", data);
+  let chart = c3.generate({
+    bindto: "#chart",
+    size: {
+      height: 184,
+    },
+    color: {
+      pattern: ["#E68618", "#26C0C7", "#5151D3"],
+    },
+    data: {
+      columns: data,
+      type: "donut",
+    },
+    donut: {
+      title: "套票地區比重",
+      width: 10,
+      label: {
+        show: false,
+      },
+    },
+  });
+}
+
+function formateChartData(renderData) {
+  console.log("formate data", renderData);
+  const countsObj = {};
+
+  renderData.forEach((ticket) => {
+    const property = ticket.area;
+
+    if (!countsObj[property]) {
+      countsObj[property] = 1;
+    } else {
+      countsObj[property] += 1;
+    }
+  });
+
+  const newData = getSortedData(Object.entries(countsObj));
+
+  return newData;
+}
+
+function getSortedData(arrayData) {
+  const order = ["台北", "台中", "高雄"];
+  return arrayData.sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+}
