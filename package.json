@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && gh-pages -d dist -r week07"
+    "deploy": "vite build && gh-pages -d dist -r https://github.com/itsdaiyy/2024-hex-js-week07-mainTask.git"
   },
   "devDependencies": {
     "gh-pages": "^6.2.0",
